@@ -1,6 +1,7 @@
 ﻿using Npgsql;
 using Openline.Terra.Api.Models;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Linq;
@@ -49,13 +50,43 @@ namespace Openline.Terra.Api.Context
             return atributo.Name;
         }
 
-        protected string GetColumns(Type type)
+        protected string GetIdColumn(Type type)
+        {
+            var campo = type.GetProperties()
+                .FirstOrDefault(property => property.Name == "Id");
+
+            var coluna = (ColumnAttribute)campo.GetCustomAttributes(typeof(ColumnAttribute), false).FirstOrDefault();
+
+            return coluna.Name;
+        }
+
+        protected List<string> GetColumnsList(Type type)
         {
             var colunas = type.GetProperties()
                 .Select(property => (ColumnAttribute)property.GetCustomAttributes(typeof(ColumnAttribute), false).FirstOrDefault())
                 .Select(property => property.Name);
 
-            var joinColunas = String.Join(',', colunas);
+            return colunas.ToList();
+        }
+
+        protected string GetColumns(Type type)
+        {
+            var colunas = GetColumnsList(type);
+
+            var joinColunas = String.Join(" , ", colunas);
+
+            return joinColunas;
+        }
+
+        protected string GetColumnsInsert(Type type)
+        {
+            var colunas = type.GetProperties()
+                .Where(property => property.Name != "Id")
+                .Select(property => (ColumnAttribute)property.GetCustomAttributes(typeof(ColumnAttribute), false).FirstOrDefault())
+                .Select(property => property.Name)
+                .Select(name => $"@{name}");
+
+            var joinColunas = String.Join(" , ", colunas);
 
             return joinColunas;
         }

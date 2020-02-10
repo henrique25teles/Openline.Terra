@@ -14,7 +14,24 @@ namespace Openline.Terra.Api.Controllers
     [ApiController]
     public class UsuarioController : ControllerBase
     {
-        [HttpPost("GetAllUsuarios")]
+        [HttpPost("AddUsuario")]
+        public ActionResult AddUsuario([FromBody] Usuario entity)
+        {
+            try
+            {
+                var repository = new UsuarioRepository();
+
+                repository.Add(entity);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"{ex.Message} {ex.InnerException?.Message}");
+            }
+        }
+
+        [HttpGet("GetAllUsuarios")]
         public ActionResult<IEnumerable<Usuario>> GetAllUsuarios()
         {
             var usuarioRepository = new UsuarioRepository();

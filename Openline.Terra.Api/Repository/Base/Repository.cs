@@ -10,22 +10,78 @@ namespace Openline.Terra.Api.Repository.Base
 {
     public class Repository<T> : Connections, IRepository<T> where T : ModelBase
     {
-        public void Add(T entity)
+        public virtual void Add(T entity)
+        {
+            try
+            {
+                var nomeTabela = GetTableName(typeof(T));
+                var colunas = GetColumns(typeof(T));
+                var colunasInsert = GetColumnsInsert(typeof(T));
+                var colunasLista = GetColumnsList(typeof(T));
+                var colunaId = GetIdColumn(typeof(T));
+
+                using (var conexao = new NpgsqlConnection(str))
+                {
+                    var sqlProximoId = $"Select (Max({colunaId}) + 1) codigo from {nomeTabela}";
+
+                    int proximoId = 0;
+
+                    using (var command = new NpgsqlCommand(sqlProximoId, conexao))
+                    {
+                        command.CommandType = CommandType.Text;
+                        OpenConnection(conexao);
+
+                        using (NpgsqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                proximoId = Convert.ToInt32(reader["codigo"]);
+                            }
+                        }
+
+                        CloseConnection(conexao);
+                    }
+
+                    var sql = $"Insert into {nomeTabela} ({colunas}) values ({proximoId},{colunasInsert}) ";
+
+                    using (var command = new NpgsqlCommand(sql, conexao))
+                    {
+                        command.CommandType = CommandType.Text;
+                        OpenConnection(conexao);
+
+                        for (var index = 1; index < colunasLista.Count; index++)
+                        {
+                            var valor = entity.GetType().GetProperties()[index].GetValue(entity);
+
+                            if (valor.GetType() == typeof(bool))
+                                command.Parameters.AddWithValue(colunasLista[index], Convert.ToInt32(valor));
+                            else
+                                command.Parameters.AddWithValue(colunasLista[index], valor);
+                        }
+
+                        command.ExecuteNonQuery();
+
+                        CloseConnection(conexao);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro", ex);
+            }
+        }
+
+        public virtual void Delete(int? id)
         {
             throw new NotImplementedException();
         }
 
-        public void Delete(int? id)
+        public virtual T Get(int? id)
         {
             throw new NotImplementedException();
         }
 
-        public T Get(int? id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<T> GetAll()
+        public virtual IEnumerable<T> GetAll()
         {
             try
             {
@@ -73,9 +129,10 @@ namespace Openline.Terra.Api.Repository.Base
             }
         }
 
-        public void Update(T entity)
+        public virtual void Update(T entity)
         {
             throw new NotImplementedException();
         }
+
     }
 }

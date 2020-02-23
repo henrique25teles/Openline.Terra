@@ -20,5 +20,6 @@ namespace Openline.Terra.Api.Models
 
         [Column("alt_senha_prox_con")]
         public bool AlteraSenhaProximoLogin { get; set; }
+
     }
 }

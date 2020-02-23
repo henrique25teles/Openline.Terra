@@ -54,7 +54,7 @@ namespace Openline.Terra.Api.Repository.Base
                             {
                                 T entity = (T)Activator.CreateInstance(typeof(T));
 
-                                foreach (var prop in typeof(T).GetProperties())
+                                foreach (var prop in GetMappedProperties(typeof(T)))
                                 {
                                     var nomeColuna = GetColumn(prop);
                                     var valor = reader[nomeColuna];

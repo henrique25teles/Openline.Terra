@@ -11,12 +11,12 @@ namespace Openline.Terra.Api.Context
 {
     public class Connections
     {
-        protected readonly string str = $"User ID=postgres;Password=5862709402;Server=localhost;Port=5432;Database=simonio;Integrated Security=true;Pooling=true;";
+        protected readonly string str = $"User ID=postgres;Password=5862709402;Server=localhost;Port=5432;Database=rmelao_utf8;Integrated Security=true;Pooling=true;";
 
         protected readonly NpgsqlConnectionStringBuilder sqlBuilder = new NpgsqlConnectionStringBuilder
         {
             Host = "localhost",
-            Database = "teste",
+            Database = "rmelao_utf8",
             Username = "postgres",
             Password = "5862709402",
             Pooling = true,

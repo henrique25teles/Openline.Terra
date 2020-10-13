@@ -85,6 +85,9 @@ namespace Openline.Terra.Api.Models
         [Column("dt_atual_sai")]
         public DateTime DataAtualizacao { get; set; }
 
+        [Column("obs_sai")]
+        public string ObservacaoSaida { get; set; }
+
         [Column("qt_sai")]
         public decimal Quantidade { get; set; }
 
@@ -124,23 +127,14 @@ namespace Openline.Terra.Api.Models
         [Column("hr_entrega")]
         public string HoraEntrega { get; set; }
 
-        [Column("qtde_emb_rapa")]
-        public decimal QuantidadeEmbalagemRapa { get; set; }
-
-        [Column("peso_liq_rapa")]
-        public decimal PesoLiquidoRapa { get; set; }
-
-        [Column("qtde_rapa")]
-        public decimal QuantidadeRapa { get; set; }
-
-        [Column("qtde_final_rapa")]
-        public decimal QuandidadeFinalRapa { get; set; }
-
         [Column("rom_entrg")]
         public int RomaneioEntrega { get; set; }
 
         [Column("vl_custo_sai")]
         public decimal ValorCusto { get; set; }
+
+        [Column("vl_dev_sai")]
+        public decimal ValorDevolucao { get; set; }
 
         [Column("st_imp_ped")]
         public int St_Imp_Ped { get; set; }
@@ -154,6 +148,9 @@ namespace Openline.Terra.Api.Models
         [Column("cd_ecf")]
         public int CodigoECF { get; set; }
 
+        [Column("vl_custo")]
+        public decimal Vl_Custo { get; set; }
+
         [Column("st_imp_ped_via_conf")]
         public int st_imp_ped_via_conf { get; set; }
 
@@ -163,13 +160,13 @@ namespace Openline.Terra.Api.Models
         [Column("prc_a_def")]
         public bool PrecoADefinir { get; set; }
 
-        [Column("vl_dev_sai")]
-        public decimal ValorDevolucao { get; set; }
-
         [Column("venda_com_lt")]
         public int venda_com_lt { get; set; }
 
         [Column("nr_ped_cli")]
         public string nr_ped_cli { get; set; }
+
+        [Column("orig_sai")]
+        public int OrigemSaida { get; set; }
     }
 }

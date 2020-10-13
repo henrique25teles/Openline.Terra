@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Openline.Terra.Api.Repository.Base
 {
@@ -27,51 +28,16 @@ namespace Openline.Terra.Api.Repository.Base
             throw new NotImplementedException();
         }
 
-        public IEnumerable<T> GetAll(int? empresaId, int? unidadeId)
+        public Query<T> GetAll(int? empresaId, int? unidadeId)
         {
             try
             {
-                var nomeTabela = GetTableName(typeof(T));
-                var colunas = GetColumns(typeof(T));
-                var colunaEmpresa = GetColumn(typeof(T).GetProperty("EmpresaId"));
-                var colunaUnidade = GetColumn(typeof(T).GetProperty("UnidadeId"));
+                var query = new Query<T>();
 
-                List<T> lstEntity = new List<T>();
+                query.Where("EmpresaId", TipoCriterio.Igual, empresaId.Value.ToString());
+                query.Where("UnidadeId", TipoCriterio.Igual, unidadeId.Value.ToString());
 
-                using (var conexao = new NpgsqlConnection(str))
-                {
-                    var sql = $"SELECT {colunas} from {nomeTabela} " + 
-                        $"where {colunaEmpresa} = {empresaId} " +
-                        $"and {colunaUnidade} = {unidadeId}";
-
-                    using (var command = new NpgsqlCommand(sql, conexao))
-                    {
-                        command.CommandType = CommandType.Text;
-                        OpenConnection(conexao);
-
-                        using (NpgsqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                T entity = (T)Activator.CreateInstance(typeof(T));
-
-                                foreach (var prop in GetMappedProperties(typeof(T)))
-                                {
-                                    var nomeColuna = GetColumn(prop);
-                                    var valor = reader[nomeColuna];
-
-                                    var valorConvertido = Convert.ChangeType(valor, prop.PropertyType);
-
-                                    prop.SetValue(entity, valorConvertido);
-                                }
-
-                                lstEntity.Add(entity);
-                            }
-                        }
-                    }
-                }
-
-                return lstEntity;
+                return query;
             }
             catch (Exception ex)
             {
@@ -83,5 +49,6 @@ namespace Openline.Terra.Api.Repository.Base
         {
             throw new NotImplementedException();
         }
+
     }
 }

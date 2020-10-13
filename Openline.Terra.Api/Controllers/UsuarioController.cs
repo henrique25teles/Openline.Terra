@@ -36,10 +36,9 @@ namespace Openline.Terra.Api.Controllers
         {
             var usuarioRepository = new UsuarioRepository();
 
-            var retorno = usuarioRepository.GetAll();
+            var query = usuarioRepository.GetAll();
 
-            var repo = new Repository<Usuario>();
-
+            var retorno = query.Run();
 
             return Ok(retorno);
         }

@@ -7,16 +7,16 @@ using System.Collections.Generic;
 
 namespace Openline.Terra.Api.Controllers.Base
 {
-    public class CustomControllerBaseUnidade<TRepository, TModel> : ControllerBase
-        where TRepository : RepositoryUnidade<TModel>
-        where TModel : ModelBaseUnidade
+    public class CustomControllerBaseEmpresa<TRepository, TModel> : ControllerBase
+        where TRepository : RepositoryEmpresa<TModel>
+        where TModel : ModelBaseEmpresa
     {
         [HttpGet("GetAll")]
-        public virtual ActionResult<IEnumerable<TModel>> GetAll([FromQuery] int empresaId, int unidadeId, int? skip, int? take)
+        public virtual ActionResult<IEnumerable<TModel>> GetAll([FromQuery] int empresaId, int? skip, int? take)
         {
             var repository = Activator.CreateInstance<TRepository>();
 
-            var query = repository.GetAll(empresaId, unidadeId);
+            var query = repository.GetAll(empresaId);
 
             query.OrderBy(x => x.Id, OrderDirection.Desc);
 
@@ -44,7 +44,5 @@ namespace Openline.Terra.Api.Controllers.Base
                 return BadRequest($"{ex.Message} {ex.InnerException?.Message}");
             }
         }
-
     }
-
 }

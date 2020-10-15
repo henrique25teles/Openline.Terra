@@ -89,6 +89,15 @@ namespace Openline.Terra.Api.Context
             return properties;
         }
 
+        protected PropertyInfo[] GetInverseProperties(Type tabela)
+        {
+            var properties = tabela.GetProperties()
+                .Where(property => property.GetCustomAttributes(typeof(InversePropertyAttribute), false).Any())
+                .Where(property => !property.GetCustomAttributes(typeof(NotMappedAttribute), false).Any()).ToArray();
+
+            return properties;
+        }
+
         protected string GetColumnsInsert(Type type)
         {
             var colunas = type.GetProperties()

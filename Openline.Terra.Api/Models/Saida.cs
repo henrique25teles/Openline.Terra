@@ -1,11 +1,12 @@
 ﻿using Openline.Terra.Api.Models.Base;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Openline.Terra.Api.Models
 {
     [Table("estq_sai")]
-    public class Saidas : ModelBaseUnidade
+    public class Saida : ModelBaseUnidade
     {
         [Column("cd_sai")]
         public override int Id { get; set; }
@@ -168,5 +169,8 @@ namespace Openline.Terra.Api.Models
 
         [Column("orig_sai")]
         public int OrigemSaida { get; set; }
+
+        [InverseProperty("cd_sai")]
+        public List<SaidaItem> SaidaItems { get; set; }
     }
 }

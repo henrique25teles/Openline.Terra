@@ -7,7 +7,7 @@ namespace Openline.Terra.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SaidaController : CustomControllerBaseUnidade<RepositoryUnidade<Saidas>, Saidas>
+    public class SaidaController : CustomControllerBaseUnidade<RepositoryUnidade<Saida>, Saida>
     {
         
     }

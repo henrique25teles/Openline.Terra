@@ -83,14 +83,14 @@ namespace Openline.Terra.Api.Controllers.Base
             }
         }
 
-        [HttpPut("Update")]
+        [HttpPut]
         public virtual ActionResult Update([FromBody] TModel entity)
         {
             throw new NotImplementedException();
         }
 
-        [HttpDelete("Delete")]
-        public virtual ActionResult Delete([FromQuery] int empresaId, int unidadeId, int? id)
+        [HttpDelete("{empresaId}/{unidadeId}/{id}")]
+        public virtual ActionResult Delete(int empresaId, int unidadeId, int? id)
         {
             throw new NotImplementedException();
         }

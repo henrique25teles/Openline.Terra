@@ -127,22 +127,6 @@ namespace Openline.Terra.Api.Context
             _offset = offset;
         }
 
-        public string SQL()
-        {
-            var nomeTabela = GetTableName(typeof(T));
-            var colunas = GetColumns(typeof(T));
-
-            var sql = $"SELECT {colunas} FROM {nomeTabela} ";
-
-            sql = sql + this.GeraWhere();
-            sql = sql + this.GeraOrderBy();
-
-            if (_limit.HasValue) sql = sql + $"LIMIT {_limit.Value} ";
-            if (_offset.HasValue) sql = sql + $"OFFSET {_offset.Value} ";
-
-            return sql;
-        }
-
         private string GeraWhere()
         {
             var sql = "";
@@ -235,6 +219,38 @@ namespace Openline.Terra.Api.Context
 
         #endregion
 
+        #region Queries
+
+        public string SQL()
+        {
+            var nomeTabela = GetTableName(typeof(T));
+            var colunas = GetColumns(typeof(T));
+
+            var sql = $"SELECT {colunas} FROM {nomeTabela} ";
+
+            sql = sql + this.GeraWhere();
+            sql = sql + this.GeraOrderBy();
+
+            if (_limit.HasValue) sql = sql + $"LIMIT {_limit.Value} ";
+            if (_offset.HasValue) sql = sql + $"OFFSET {_offset.Value} ";
+
+            return sql;
+        }
+
+        private string SQLCount()
+        {
+            var nomeTabela = GetTableName(typeof(T));
+            var coluna = GetColumnsList(typeof(T)).First();
+
+            var sql = $"SELECT COUNT({coluna}) FROM {nomeTabela} ";
+
+            sql = sql + this.GeraWhere();
+
+            return sql;
+        }
+
+        #endregion
+
         #region Roda Query
 
         public IEnumerable<T> Run()
@@ -269,6 +285,34 @@ namespace Openline.Terra.Api.Context
             return lstEntity;
         }
         
+        public long Count()
+        {
+            long count = 0;
+
+            using (var conexao = new NpgsqlConnection(str))
+            {
+                var sql = this.SQLCount();
+
+                using (var command = new NpgsqlCommand(sql, conexao))
+                {
+                    command.CommandType = CommandType.Text;
+                    OpenConnection(conexao);
+
+                    using (NpgsqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var valor = reader["count"];
+
+                            count = (long)valor;
+                        }
+                    }
+                }
+            }
+
+            return count;
+        }
+
         private void BuscaColunasMapeadas(NpgsqlDataReader reader, T entity)
         {
             var mappedProperties = GetMappedProperties(typeof(T));

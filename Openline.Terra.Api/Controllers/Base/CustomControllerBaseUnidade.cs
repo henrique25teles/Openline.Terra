@@ -3,7 +3,6 @@ using Openline.Terra.Api.Context;
 using Openline.Terra.Api.Models.Base;
 using Openline.Terra.Api.Repository.Base;
 using System;
-using System.Collections.Generic;
 
 namespace Openline.Terra.Api.Controllers.Base
 {
@@ -84,6 +83,17 @@ namespace Openline.Terra.Api.Controllers.Base
             }
         }
 
+        [HttpPut("Update")]
+        public virtual ActionResult Update([FromBody] TModel entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpDelete("Delete")]
+        public virtual ActionResult Delete([FromQuery] int empresaId, int unidadeId, int? id)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

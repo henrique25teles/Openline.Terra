@@ -13,7 +13,7 @@ namespace Openline.Terra.Api.Repository.Base
 {
     public class RepositoryEmpresa<T> : Connections, IRepositoryEmpresa<T> where T : ModelBaseEmpresa
     {
-        public void Add(T entity)
+        public virtual T Add(T entity)
         {
             try
             {
@@ -54,7 +54,10 @@ namespace Openline.Terra.Api.Repository.Base
 
                         CloseConnection(conexao);
                     }
+                
+                    return this.Get(proximoId, empresaId);
                 }
+
             }
             catch (Exception ex)
             {
@@ -62,12 +65,12 @@ namespace Openline.Terra.Api.Repository.Base
             }
         }
 
-        public void Delete(int? id, int? empresaId)
+        public virtual void Delete(int? id, int? empresaId)
         {
             throw new NotImplementedException();
         }
 
-        public T Get(int? id, int? empresaId)
+        public virtual T Get(int? id, int? empresaId)
         {
             try
             {
@@ -89,7 +92,7 @@ namespace Openline.Terra.Api.Repository.Base
             }
         }
 
-        public Query<T> GetAll(int? empresaId)
+        public virtual Query<T> GetAll(int? empresaId)
         {
             try
             {
@@ -105,7 +108,7 @@ namespace Openline.Terra.Api.Repository.Base
             }
         }
 
-        public void Update(T entity)
+        public virtual T Update(T entity)
         {
             throw new NotImplementedException();
         }

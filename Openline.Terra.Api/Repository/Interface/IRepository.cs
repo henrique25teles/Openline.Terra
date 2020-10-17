@@ -6,8 +6,8 @@ namespace Openline.Terra.Api.Repository.Interface
     public interface IRepository<T> where T : ModelBase
     {
         Query<T> GetAll();
-        void Add(T entity);
-        void Update(T entity);
+        T Add(T entity);
+        T Update(T entity);
         T Get(int? id);
         void Delete(int? id);
     }

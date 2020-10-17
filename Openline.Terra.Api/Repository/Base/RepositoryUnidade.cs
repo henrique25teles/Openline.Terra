@@ -16,7 +16,7 @@ namespace Openline.Terra.Api.Repository.Base
 {
     public class RepositoryUnidade<T> : Connections, IRepositoryUnidade<T> where T : ModelBaseUnidade
     {
-        public void Add(T entity)
+        public virtual T Add(T entity)
         {
             try
             {
@@ -59,6 +59,8 @@ namespace Openline.Terra.Api.Repository.Base
 
                         CloseConnection(conexao);
                     }
+
+                    return this.Get(proximoId, empresaId, unidadeId);
                 }
             }
             catch (Exception ex)
@@ -67,12 +69,12 @@ namespace Openline.Terra.Api.Repository.Base
             }
         }
 
-        public void Delete(int? id, int? empresaId, int? unidadeId)
+        public virtual void Delete(int? id, int? empresaId, int? unidadeId)
         {
             throw new NotImplementedException();
         }
 
-        public T Get(int? id, int? empresaId, int? unidadeId)
+        public virtual T Get(int? id, int? empresaId, int? unidadeId)
         {
             try
             {
@@ -96,7 +98,7 @@ namespace Openline.Terra.Api.Repository.Base
             }
         }
 
-        public Query<T> GetAll(int? empresaId, int? unidadeId)
+        public virtual Query<T> GetAll(int? empresaId, int? unidadeId)
         {
             try
             {
@@ -113,7 +115,7 @@ namespace Openline.Terra.Api.Repository.Base
             }
         }
 
-        public void Update(T entity)
+        public virtual T Update(T entity)
         {
             throw new NotImplementedException();
         }
@@ -143,136 +145,6 @@ namespace Openline.Terra.Api.Repository.Base
 
             return proximoId;
         }
-
-        //#region Insert Métodos
-
-        //private string GetInsertInverse<TPai>(TPai entity)
-        //{
-        //    string sql = "";
-
-        //    foreach (var prop in GetInverseProperties(typeof(TPai)))
-        //    {
-        //        var atributo = (InversePropertyAttribute)prop.GetCustomAttributes(typeof(InversePropertyAttribute), false).FirstOrDefault();
-        //        var foreignKey = atributo.Property;
-
-        //        var propertyType = prop.PropertyType;
-        //        var tipoFilho = propertyType.GetGenericArguments().FirstOrDefault();
-        //        var tabelaAtributo = tipoFilho.GetCustomAttributes(typeof(TableAttribute), false).First();
-
-        //        var nomeTabelaFilho = typeof(TableAttribute).GetProperty("Name").GetValue(tabelaAtributo);
-        //        var colunasTabelaFilho = GetColumns(tipoFilho);
-
-        //        var filhos = typeof(TPai).GetProperty(prop.Name).GetValue(entity) as IEnumerable;
-
-        //        var idLancamento = 0;
-
-        //        foreach (var filho in filhos)
-        //        {
-        //            idLancamento++;
-
-        //            var propriedadesMapeadasSemId = GetMappedProperties(filho.GetType())
-        //                .Where(x => x.Name != "Id");
-
-        //            var propriedadesParaInserir = propriedadesMapeadasSemId
-        //                .Select(x => $"@{prop.Name}{idLancamento}_{x.Name}");
-
-        //            var valoresInsert = String.Join(",", propriedadesParaInserir);
-
-        //            sql = sql + $"INSERT INTO {nomeTabelaFilho} ({colunasTabelaFilho}) VALUES ({idLancamento},{valoresInsert}); ";
-
-        //            sql += GetInsertInverse(filho);
-        //        }
-        //    }
-
-        //    return sql;
-        //}
-
-        //private static void InsertDadosPrincipais(T entity, IEnumerable<PropertyInfo> propriedadesMapeadasSemId, NpgsqlCommand command)
-        //{
-        //    foreach (var prop in propriedadesMapeadasSemId)
-        //    {
-        //        var valor = prop.GetValue(entity);
-
-        //        if (valor != null)
-        //        {
-        //            if (valor is bool)
-        //                command.Parameters.AddWithValue(prop.Name, Convert.ToInt32(valor));
-        //            else if (valor is DateTime)
-        //                command.Parameters.AddWithValue(prop.Name, (DateTime)valor);
-        //            else if (valor.GetType().IsEnum)
-        //                command.Parameters.AddWithValue(prop.Name, (int)valor);
-        //            else
-        //                command.Parameters.AddWithValue(prop.Name, valor);
-        //        }
-        //        else
-        //        {
-        //            command.CommandText = command.CommandText.Replace($"@{prop.Name}", "NULL");
-        //        }
-        //    }
-        //}
-
-        //private void InsertDadosInversos(T entity, int proximoId, NpgsqlCommand command)
-        //{
-        //    foreach (var it in GetInverseProperties(entity.GetType()))
-        //    {
-        //        var atributo = (InversePropertyAttribute)it.GetCustomAttributes(typeof(InversePropertyAttribute), false).FirstOrDefault();
-
-        //        var propertyType = it.PropertyType;
-        //        var tipoFilho = propertyType.GetGenericArguments().FirstOrDefault();
-        //        var tabelaAtributo = tipoFilho.GetCustomAttributes(typeof(TableAttribute), false).First();
-
-        //        var propriedadesMapeadasSemIdFilho = GetMappedProperties(tipoFilho)
-        //            .Where(prop => prop.Name != "Id");
-
-        //        var propriedadesParaInserirFilho = propriedadesMapeadasSemIdFilho
-        //            .Select(prop => $"@{prop.Name}");
-
-        //        var filhos = entity.GetType().GetProperty(it.Name).GetValue(entity) as IEnumerable;
-
-        //        var idLancamento = 0;
-
-        //        foreach (var filho in filhos)
-        //        {
-        //            idLancamento++;
-
-        //            foreach (var prop in propriedadesMapeadasSemIdFilho)
-        //            {
-        //                if (prop.GetCustomAttribute(typeof(ForeignKeyAttribute), false) != null)
-        //                {
-        //                    var coluna = GetColumn(prop);
-
-        //                    //Valida se o campo atual, é a foreignkey da classe pai
-        //                    if (coluna == atributo.Property)
-        //                    {
-        //                        command.Parameters.AddWithValue($"{it.Name}{idLancamento}_{prop.Name}", proximoId);
-        //                        continue;
-        //                    }
-        //                }
-
-        //                var valor = prop.GetValue(filho);
-
-        //                if (valor != null)
-        //                {
-        //                    if (valor is bool)
-        //                        command.Parameters.AddWithValue($"{it.Name}{idLancamento}_{prop.Name}", Convert.ToInt32(valor));
-        //                    else if (valor is DateTime)
-        //                        command.Parameters.AddWithValue($"{it.Name}{idLancamento}_{prop.Name}", (DateTime)valor);
-        //                    else if (valor.GetType().IsEnum)
-        //                        command.Parameters.AddWithValue(prop.Name, (int)valor);
-        //                    else
-        //                        command.Parameters.AddWithValue($"{it.Name}{idLancamento}_{prop.Name}", valor);
-        //                }
-        //                else
-        //                {
-        //                    command.CommandText = command.CommandText.Replace($"@{it.Name}{idLancamento}_{prop.Name}", "NULL");
-        //                }
-
-        //            }
-        //        }
-        //    }
-        //}
-
-        //#endregion
 
     }
 }

@@ -11,7 +11,7 @@ namespace Openline.Terra.Api.Repository.Base
 {
     public class Repository<T> : Connections, IRepository<T> where T : ModelBase
     {
-        public virtual void Add(T entity)
+        public virtual T Add(T entity)
         {
             try
             {
@@ -48,7 +48,10 @@ namespace Openline.Terra.Api.Repository.Base
                         command.ExecuteNonQuery();
 
                         CloseConnection(conexao);
+                    
                     }
+                        
+                    return this.Get(proximoId);
                 }
             }
             catch (Exception ex)
@@ -87,7 +90,7 @@ namespace Openline.Terra.Api.Repository.Base
             }
         }
 
-        public virtual void Update(T entity)
+        public virtual T Update(T entity)
         {
             throw new NotImplementedException();
         }

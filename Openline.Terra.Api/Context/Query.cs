@@ -278,10 +278,22 @@ namespace Openline.Terra.Api.Context
                 var nomeColuna = GetColumn(prop);
                 var valor = reader[nomeColuna];
 
-                if (valor is System.DBNull) continue;
-                var valorConvertido = Convert.ChangeType(valor, prop.PropertyType);
+                Type tipo = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
 
-                prop.SetValue(entity, valorConvertido);
+                if (valor is System.DBNull) continue;
+
+                if (tipo.IsEnum)
+                {
+                    var valorInteiro = Convert.ToInt32(valor);
+
+                    var valorConvertido = Enum.ToObject(tipo, valorInteiro);
+                    prop.SetValue(entity, valorConvertido);
+                }
+                else
+                {
+                    var valorConvertido = Convert.ChangeType(valor, tipo);
+                    prop.SetValue(entity, valorConvertido);
+                }
             }
         }
 

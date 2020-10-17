@@ -19,12 +19,9 @@ namespace Openline.Terra.Api.Models
         [ForeignKey("estq_sai_it_estq_sai_fk")]
         public int Saida_id { get; set; }
 
-        [Column("cd_sai")]
+        [Column("cd_prod")]
         public int Produto_id { get; set; }
 
-        [Column("nr_item")]
-        public int NumeroItem { get; set; }
-        
         [Column("st_it")]
         public string Cst { get; set; }
         
@@ -35,31 +32,31 @@ namespace Openline.Terra.Api.Models
         public decimal Preco { get; set; }
 
         [Column("vl_desc_it")]
-        public decimal Desconto { get; set; }
+        public decimal? Desconto { get; set; }
 
         [Column("tx_icms_it")]
-        public decimal TaxaIcms { get; set; }
+        public decimal? TaxaIcms { get; set; }
 
         [Column("tx_red_it")]
-        public decimal TaxaReducao { get; set; }
+        public decimal? TaxaReducao { get; set; }
 
         [Column("tx_ipi_it")]
-        public decimal TaxaIpi { get; set; }
+        public decimal? TaxaIpi { get; set; }
 
         [Column("vl_to_it")]
         public decimal ValorTotal { get; set; }
 
         [Column("sts_it")]
-        public int sts_it { get; set; }
+        public int? sts_it { get; set; }
 
         [Column("vl_jur_it")]
-        public decimal ValorJuros { get; set; }
+        public decimal? ValorJuros { get; set; }
 
         [Column("vl_frete_it")]
-        public decimal ValorFrete { get; set; }
+        public decimal? ValorFrete { get; set; }
 
         [Column("tx_jur_it")]
-        public decimal TaxaJuros { get; set; }
+        public decimal? TaxaJuros { get; set; }
 
         [Column("preco_custo_it")]
         public decimal PrecoCusto { get; set; }
@@ -71,31 +68,31 @@ namespace Openline.Terra.Api.Models
         public string UnidadeMedidaConversao { get; set; }
 
         [Column("qtde_conv_it")]
-        public decimal QuantidadeUnidadeMedidaConversao { get; set; }
+        public decimal? QuantidadeUnidadeMedidaConversao { get; set; }
 
         [Column("preco_conv_it")]
-        public decimal PrecoConversao { get; set; }
+        public decimal? PrecoConversao { get; set; }
 
         [Column("qtde_emb_it")]
-        public decimal QuantidadeEmbalagem { get; set; }
+        public decimal? QuantidadeEmbalagem { get; set; }
 
         [Column("ds_prod_especial")]
         public string DescricaoEspecial { get; set; }
 
         [Column("rateio_frete")]
-        public decimal RateioFrete { get; set; }
+        public decimal? RateioFrete { get; set; }
 
         [Column("rateio_desc_financ")]
-        public decimal RateioDescontoFinanceiro { get; set; }
+        public decimal? RateioDescontoFinanceiro { get; set; }
 
         [Column("rateio_desc_real")]
-        public decimal RateioDescontoRealizado { get; set; }
+        public decimal? RateioDescontoRealizado { get; set; }
 
         [Column("qtde_dev")]
-        public decimal QuantidadeDevolvida { get; set; }
+        public decimal? QuantidadeDevolvida { get; set; }
 
         [Column("cd_tbl_prc")]
-        public int TabelaPreco { get; set;}
+        public int? TabelaPreco { get; set;}
 
         [Column("csosn_it")]
         public int Csosn { get; set; }
@@ -104,16 +101,16 @@ namespace Openline.Terra.Api.Models
         public decimal perc_apr_cred_it { get; set; }
 
         [Column("vl_custo")]
-        public decimal ValorCusto { get; set; }
+        public decimal? ValorCusto { get; set; }
 
         [Column("cd_rastreio")]
-        public long CodigoRastreio { get; set; }
+        public long? CodigoRastreio { get; set; }
 
         [Column("cd_lt_produtor")]
-        public long cd_lt_produtor { get; set; }
+        public long? cd_lt_produtor { get; set; }
 
         [Column("cd_prod_cliente")]
-        public long cd_prod_cliente { get; set; }
+        public long? cd_prod_cliente { get; set; }
 
     }
 }

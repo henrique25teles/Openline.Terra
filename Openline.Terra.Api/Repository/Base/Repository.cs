@@ -64,7 +64,15 @@ namespace Openline.Terra.Api.Repository.Base
 
         public virtual T Get(int? id)
         {
-            throw new NotImplementedException();
+            if (!id.HasValue) throw new Exception("Id não informado");
+
+            var query = new Query<T>();
+
+            query.Where(x => x.Id, TipoCriterio.Igual, id.Value.ToString());
+
+            var retorno = query.Run();
+
+            return retorno.FirstOrDefault();
         }
 
         public virtual Query<T> GetAll()
@@ -108,7 +116,6 @@ namespace Openline.Terra.Api.Repository.Base
 
             return proximoId;
         }
-
 
     }
 }

@@ -69,7 +69,24 @@ namespace Openline.Terra.Api.Repository.Base
 
         public T Get(int? id, int? empresaId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (!id.HasValue) throw new Exception("Id não informado");
+                if (!empresaId.HasValue) throw new Exception("Id Empresa não informado");
+
+                var query = new Query<T>();
+
+                query.Where("EmpresaId", TipoCriterio.Igual, empresaId.Value.ToString());
+                query.Where(x => x.Id, TipoCriterio.Igual, id.Value.ToString());
+
+                var retorno = query.Run();
+
+                return retorno.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro", ex);
+            }
         }
 
         public Query<T> GetAll(int? empresaId)

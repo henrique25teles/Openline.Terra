@@ -59,7 +59,28 @@ namespace Openline.Terra.Api.Controllers.Base
             }
             catch (Exception ex)
             {
-                return BadRequest($"{ex.Message} {ex.InnerException?.Message}");
+                return StatusCode(500, ex);
+            }
+        }
+
+        [HttpGet("Get")]
+        public virtual ActionResult Get([FromQuery] int empresaId, int unidadeId, int? id)
+        {
+            try
+            {
+                if (empresaId == 0) return BadRequest("Empresa id informado não pode ser zero");
+                if (unidadeId == 0) return BadRequest("Unidade id informado não pode ser zero");
+                if (id == 0) return BadRequest("Id informado não pode ser zero");
+
+                var repository = Activator.CreateInstance<TRepository>();
+
+                var entity = repository.Get(id, empresaId, unidadeId);
+
+                return Ok(entity);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
             }
         }
 

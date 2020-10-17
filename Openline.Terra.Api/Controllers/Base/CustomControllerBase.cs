@@ -14,18 +14,34 @@ namespace Openline.Terra.Api.Controllers.Base
         [HttpGet("GetAll")]
         public virtual ActionResult<IEnumerable<TModel>> GetAll([FromQuery] int? skip, int? take)
         {
-            var repository = Activator.CreateInstance<TRepository>();
+            try
+            {
+                if (skip == 0 || take == 0) return BadRequest("skip ou take informado não pode ser zero");
 
-            var query = repository.GetAll();
+                var repository = Activator.CreateInstance<TRepository>();
 
-            query.OrderBy(x => x.Id, OrderDirection.Desc);
+                var query = repository.GetAll();
 
-            if (skip.HasValue) query.Skip(skip.Value);
-            if (take.HasValue) query.Take(take.Value);
+                query.OrderBy(x => x.Id, OrderDirection.Desc);
 
-            var retorno = query.Run();
+                if (skip.HasValue) query.Skip(skip.Value);
+                if (take.HasValue) query.Take(take.Value);
 
-            return Ok(retorno);
+                var lista = query.Run();
+                var count = query.Count();
+
+                if (count == 0) return NoContent();
+
+                return Ok(new 
+                { 
+                    count,
+                    lista
+                });
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
         }
 
         [HttpPost("Insert")]

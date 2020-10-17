@@ -62,9 +62,7 @@ namespace Openline.Terra.Api.Context
 
         protected List<string> GetColumnsList(Type type)
         {
-            var colunas = type.GetProperties()
-                .Where(property => property.GetCustomAttributes(typeof(ColumnAttribute), false).Any())
-                .Where(property => !property.GetCustomAttributes(typeof(NotMappedAttribute), false).Any())
+            var colunas = GetMappedProperties(type)
                 .Select(property => (ColumnAttribute)property.GetCustomAttributes(typeof(ColumnAttribute), false).FirstOrDefault())
                 .Select(property => property.Name);
 
@@ -100,9 +98,8 @@ namespace Openline.Terra.Api.Context
 
         protected string GetColumnsInsert(Type type)
         {
-            var colunas = type.GetProperties()
+            var colunas = GetMappedProperties(type)
                 .Where(property => property.Name != "Id")
-                .Select(property => (ColumnAttribute)property.GetCustomAttributes(typeof(ColumnAttribute), false).FirstOrDefault())
                 .Select(property => property.Name)
                 .Select(name => $"@{name}");
 

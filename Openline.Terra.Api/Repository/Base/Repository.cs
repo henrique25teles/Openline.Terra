@@ -5,6 +5,7 @@ using Openline.Terra.Api.Repository.Interface;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 
 namespace Openline.Terra.Api.Repository.Base
 {
@@ -16,48 +17,33 @@ namespace Openline.Terra.Api.Repository.Base
             {
                 var nomeTabela = GetTableName(typeof(T));
                 var colunas = GetColumns(typeof(T));
-                var colunasInsert = GetColumnsInsert(typeof(T));
                 var colunasLista = GetColumnsList(typeof(T));
                 var colunaId = GetIdColumn(typeof(T));
 
                 using (var conexao = new NpgsqlConnection(str))
                 {
-                    var sqlProximoId = $"Select (Max({colunaId}) + 1) codigo from {nomeTabela}";
+                    int proximoId = GetProximoId(nomeTabela, colunaId, conexao);
 
-                    int proximoId = 0;
+                    var propriedadesMapeadasSemId = GetMappedProperties(typeof(T))
+                        .Where(prop => prop.Name != "Id");
 
-                    using (var command = new NpgsqlCommand(sqlProximoId, conexao))
-                    {
-                        command.CommandType = CommandType.Text;
-                        OpenConnection(conexao);
+                    var propriedadesParaInserir = propriedadesMapeadasSemId
+                        .Select(prop => $"@{prop.Name}");
 
-                        using (NpgsqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                proximoId = Convert.ToInt32(reader["codigo"]);
-                            }
-                        }
+                    var valoresInsert = String.Join(",", propriedadesParaInserir);
 
-                        CloseConnection(conexao);
-                    }
+                    var sql = $"INSERT INTO {nomeTabela} ({colunas}) VALUES ({proximoId} , {valoresInsert}); ";
 
-                    var sql = $"Insert into {nomeTabela} ({colunas}) values ({proximoId},{colunasInsert}) ";
+                    sql += GetInsertInverse(entity);
 
                     using (var command = new NpgsqlCommand(sql, conexao))
                     {
                         command.CommandType = CommandType.Text;
                         OpenConnection(conexao);
 
-                        for (var index = 1; index < colunasLista.Count; index++)
-                        {
-                            var valor = entity.GetType().GetProperties()[index].GetValue(entity);
+                        InsertDadosPrincipais(entity, propriedadesMapeadasSemId, command);
 
-                            if (valor.GetType() == typeof(bool))
-                                command.Parameters.AddWithValue(colunasLista[index], Convert.ToInt32(valor));
-                            else
-                                command.Parameters.AddWithValue(colunasLista[index], valor);
-                        }
+                        InsertDadosInversos(entity, proximoId, command);
 
                         command.ExecuteNonQuery();
 
@@ -97,6 +83,32 @@ namespace Openline.Terra.Api.Repository.Base
         {
             throw new NotImplementedException();
         }
+
+        private int GetProximoId(string nomeTabela, string colunaId, NpgsqlConnection conexao)
+        {
+            int proximoId = 0;
+
+            var sqlProximoId = $"Select (Max({colunaId}) + 1) codigo from {nomeTabela}";
+
+            using (var command = new NpgsqlCommand(sqlProximoId, conexao))
+            {
+                command.CommandType = CommandType.Text;
+                OpenConnection(conexao);
+
+                using (NpgsqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        proximoId = Convert.ToInt32(reader["codigo"]);
+                    }
+                }
+
+                CloseConnection(conexao);
+            }
+
+            return proximoId;
+        }
+
 
     }
 }

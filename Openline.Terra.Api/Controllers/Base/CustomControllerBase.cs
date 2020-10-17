@@ -10,7 +10,7 @@ namespace Openline.Terra.Api.Controllers.Base
         where TRepository : Repository<TModel>
         where TModel : ModelBase
     {
-        [HttpGet("GetAll")]
+        [HttpGet]
         public virtual ActionResult GetAll([FromQuery] int? skip, int? take)
         {
             try
@@ -43,25 +43,8 @@ namespace Openline.Terra.Api.Controllers.Base
             }
         }
 
-        [HttpPost("Insert")]
-        public virtual ActionResult Insert([FromBody] TModel entity)
-        {
-            try
-            {
-                var repository = Activator.CreateInstance<TRepository>();
-
-                repository.Add(entity);
-
-                return Ok(entity);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex);
-            }
-        }
-
-        [HttpGet("Get")]
-        public virtual ActionResult Get([FromQuery] int? id)
+        [HttpGet("{id}")]
+        public virtual ActionResult Get(int? id)
         {
             try
             {
@@ -72,6 +55,23 @@ namespace Openline.Terra.Api.Controllers.Base
                 var entity = repository.Get(id);
 
                 return Ok(entity);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
+        }
+
+        [HttpPost]
+        public virtual ActionResult Insert([FromBody] TModel entity)
+        {
+            try
+            {
+                var repository = Activator.CreateInstance<TRepository>();
+
+                var retorno = repository.Add(entity);
+
+                return Ok(retorno);
             }
             catch (Exception ex)
             {

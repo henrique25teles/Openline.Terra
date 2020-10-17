@@ -10,8 +10,8 @@ namespace Openline.Terra.Api.Controllers.Base
         where TRepository : RepositoryUnidade<TModel>
         where TModel : ModelBaseUnidade
     {
-        [HttpGet("GetAll")]
-        public virtual ActionResult GetAll([FromQuery] int empresaId, int unidadeId, int? skip, int? take)
+        [HttpGet("{empresaId}/{unidadeId}")]
+        public virtual ActionResult GetAll(int empresaId, int unidadeId, [FromQuery] int? skip, int? take)
         {
             try
             {
@@ -45,25 +45,8 @@ namespace Openline.Terra.Api.Controllers.Base
             }
         }
 
-        [HttpPost("Insert")]
-        public virtual ActionResult Insert([FromBody] TModel entity)
-        {
-            try
-            {
-                var repository = Activator.CreateInstance<TRepository>();
-
-                repository.Add(entity);
-
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex);
-            }
-        }
-
-        [HttpGet("Get")]
-        public virtual ActionResult Get([FromQuery] int empresaId, int unidadeId, int? id)
+        [HttpGet("{empresaId}/{unidadeId}/{id}")]
+        public virtual ActionResult Get(int empresaId, int unidadeId, int? id)
         {
             try
             {
@@ -76,6 +59,23 @@ namespace Openline.Terra.Api.Controllers.Base
                 var entity = repository.Get(id, empresaId, unidadeId);
 
                 return Ok(entity);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
+        }
+
+        [HttpPost]
+        public virtual ActionResult Insert([FromBody] TModel entity)
+        {
+            try
+            {
+                var repository = Activator.CreateInstance<TRepository>();
+
+                var retorno = repository.Add(entity);
+
+                return Ok(retorno);
             }
             catch (Exception ex)
             {

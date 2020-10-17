@@ -12,7 +12,7 @@ namespace Openline.Terra.Api.Controllers.Base
         where TModel : ModelBase
     {
         [HttpGet("GetAll")]
-        public virtual ActionResult<IEnumerable<TModel>> GetAll([FromQuery] int? skip, int? take)
+        public virtual ActionResult GetAll([FromQuery] int? skip, int? take)
         {
             try
             {
@@ -53,11 +53,11 @@ namespace Openline.Terra.Api.Controllers.Base
 
                 repository.Add(entity);
 
-                return Ok();
+                return Ok(entity);
             }
             catch (Exception ex)
             {
-                return BadRequest($"{ex.Message} {ex.InnerException?.Message}");
+                return StatusCode(500, ex);
             }
         }
     }

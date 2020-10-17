@@ -12,7 +12,7 @@ namespace Openline.Terra.Api.Controllers.Base
         where TModel : ModelBaseUnidade
     {
         [HttpGet("GetAll")]
-        public virtual ActionResult<IEnumerable<TModel>> GetAll([FromQuery] int empresaId, int unidadeId, int? skip, int? take)
+        public virtual ActionResult GetAll([FromQuery] int empresaId, int unidadeId, int? skip, int? take)
         {
             try
             {

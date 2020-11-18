@@ -1,4 +1,5 @@
-﻿using Openline.Terra.Api.Models.Base;
+﻿using Openline.Terra.Api.Context.Schema;
+using Openline.Terra.Api.Models.Base;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Openline.Terra.Api.Models
@@ -6,19 +7,24 @@ namespace Openline.Terra.Api.Models
     [Table("estq_sai_it")]
     public class SaidaItem : ModelBaseUnidade
     {
+        [PrimaryKey]
         [Column("nr_item")]
         public override int Id { get; set; }
 
+        [PrimaryKey]
         [Column("cd_emp")]
         public override int EmpresaId { get; set; }
 
+        [PrimaryKey]
         [Column("cd_pes_un_emp")]
         public override int UnidadeId { get; set; }
 
+        [PrimaryKey]
         [Column("cd_sai")]
         [ForeignKey("estq_sai_it_estq_sai_fk")]
         public int Saida_id { get; set; }
 
+        [PrimaryKey]
         [Column("cd_prod")]
         public int Produto_id { get; set; }
 

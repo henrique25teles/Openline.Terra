@@ -1,4 +1,5 @@
-﻿using Openline.Terra.Api.Models.Base;
+﻿using Openline.Terra.Api.Context.Schema;
+using Openline.Terra.Api.Models.Base;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Openline.Terra.Api.Models
@@ -6,6 +7,7 @@ namespace Openline.Terra.Api.Models
     [Table("pub_usu")]
     public class Usuario : ModelBase
     {
+        [PrimaryKey]
         [Column("cd_usu")]
         public override int Id { get; set; }
 

@@ -84,13 +84,38 @@ namespace Openline.Terra.Api.Controllers.Base
         [HttpPut]
         public virtual ActionResult Update([FromBody] TModel entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var repository = Activator.CreateInstance<TRepository>();
+
+                var retorno = repository.Update(entity);
+
+                return Ok(retorno);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
         }
 
         [HttpDelete("{empresaId}/{id}")]
         public virtual ActionResult Delete(int empresaId, int? id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (empresaId == 0) return BadRequest("Empresa id informado não pode ser zero");
+                if (id == 0) return BadRequest("Id informado não pode ser zero");
+
+                var repository = Activator.CreateInstance<TRepository>();
+
+                repository.Delete(id, empresaId);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
         }
     }
 }

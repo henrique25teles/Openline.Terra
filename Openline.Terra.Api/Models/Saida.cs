@@ -1,4 +1,5 @@
-﻿using Openline.Terra.Api.Models.Base;
+﻿using Openline.Terra.Api.Context.Schema;
+using Openline.Terra.Api.Models.Base;
 using Openline.Terra.Api.Models.Enums;
 using System;
 using System.Collections.Generic;
@@ -9,12 +10,15 @@ namespace Openline.Terra.Api.Models
     [Table("estq_sai")]
     public class Saida : ModelBaseUnidade
     {
+        [PrimaryKey]
         [Column("cd_sai")]
         public override int Id { get; set; }
 
+        [PrimaryKey]
         [Column("cd_emp")]
         public override int EmpresaId { get; set; }
 
+        [PrimaryKey]
         [Column("cd_pes_un_emp")]
         public override int UnidadeId { get; set; }
         

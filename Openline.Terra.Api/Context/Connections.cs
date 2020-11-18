@@ -1,5 +1,7 @@
 ﻿using Npgsql;
+using Openline.Terra.Api.Context.Schema;
 using Openline.Terra.Api.Models;
+using Openline.Terra.Api.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -20,6 +22,7 @@ namespace Openline.Terra.Api.Context
             Username = "postgres",
             Password = "5862709402",
             Pooling = true,
+            IncludeErrorDetails = true,
         };
 
         #region Connection
@@ -113,7 +116,7 @@ namespace Openline.Terra.Api.Context
 
         #region Insert Métodos
 
-        protected string GetInsertInverse<TPai>(TPai entity)
+        protected string GetInsertInverse<TPai>(TPai entity, int paiId)
         {
             string sql = "";
 
@@ -127,7 +130,9 @@ namespace Openline.Terra.Api.Context
                 var tabelaAtributo = tipoFilho.GetCustomAttributes(typeof(TableAttribute), false).First();
 
                 var nomeTabelaFilho = typeof(TableAttribute).GetProperty("Name").GetValue(tabelaAtributo);
-                var colunasTabelaFilho = GetColumns(tipoFilho);
+                var colunasTabelaFilhoList = GetColumnsList(tipoFilho)
+                    .Where(x => x != foreignKey);
+                var colunasTabelaFilho = String.Join(',', colunasTabelaFilhoList);
 
                 var filhos = typeof(TPai).GetProperty(prop.Name).GetValue(entity) as System.Collections.IEnumerable;
 
@@ -138,6 +143,7 @@ namespace Openline.Terra.Api.Context
                     idLancamento++;
 
                     var propriedadesMapeadasSemId = GetMappedProperties(filho.GetType())
+                        .Where(x => ((ColumnAttribute)x.GetCustomAttributes(typeof(ColumnAttribute), false).First()).Name != foreignKey)
                         .Where(x => x.Name != "Id");
 
                     var propriedadesParaInserir = propriedadesMapeadasSemId
@@ -145,9 +151,9 @@ namespace Openline.Terra.Api.Context
 
                     var valoresInsert = String.Join(",", propriedadesParaInserir);
 
-                    sql = sql + $"INSERT INTO {nomeTabelaFilho} ({colunasTabelaFilho}) VALUES ({idLancamento},{valoresInsert}); ";
+                    sql += $"INSERT INTO {nomeTabelaFilho} ({colunasTabelaFilho},{foreignKey}) VALUES ({idLancamento},{valoresInsert},{paiId}); ";
 
-                    sql += GetInsertInverse(filho);
+                    sql += GetInsertInverse(filho, idLancamento);
                 }
             }
 
@@ -191,9 +197,6 @@ namespace Openline.Terra.Api.Context
                 var propriedadesMapeadasSemIdFilho = GetMappedProperties(tipoFilho)
                     .Where(prop => prop.Name != "Id");
 
-                var propriedadesParaInserirFilho = propriedadesMapeadasSemIdFilho
-                    .Select(prop => $"@{prop.Name}");
-
                 var filhos = entity.GetType().GetProperty(it.Name).GetValue(entity) as System.Collections.IEnumerable;
 
                 var idLancamento = 0;
@@ -211,7 +214,7 @@ namespace Openline.Terra.Api.Context
                             //Valida se o campo atual, é a foreignkey da classe pai
                             if (coluna == atributo.Property)
                             {
-                                command.Parameters.AddWithValue($"{it.Name}{idLancamento}_{prop.Name}", proximoId);
+                                //command.Parameters.AddWithValue($"{it.Name}{idLancamento}_{prop.Name}", proximoId);
                                 continue;
                             }
                         }
@@ -237,6 +240,176 @@ namespace Openline.Terra.Api.Context
                     }
                 }
             }
+        }
+
+        #endregion
+
+        #region Update Métodos
+
+        protected string GetUpdateInverse<TPai>(TPai entity, int paiId)
+        {
+            string sql = "";
+
+            foreach (var prop in GetInverseProperties(typeof(TPai)))
+            {
+                var atributo = (InversePropertyAttribute)prop.GetCustomAttributes(typeof(InversePropertyAttribute), false).FirstOrDefault();
+                var foreignKey = atributo.Property;
+
+                var propertyType = prop.PropertyType;
+                var tipoFilho = propertyType.GetGenericArguments().FirstOrDefault();
+                var tabelaAtributo = tipoFilho.GetCustomAttributes(typeof(TableAttribute), false).First();
+
+                var nomeTabelaFilho = typeof(TableAttribute).GetProperty("Name").GetValue(tabelaAtributo);
+                var colunasTabelaFilho = GetColumns(tipoFilho);
+
+                var filhos = typeof(TPai).GetProperty(prop.Name).GetValue(entity) as System.Collections.IEnumerable;
+
+
+                foreach (var filho in filhos)
+                {
+                    var idLancamento = filho.GetType().GetProperty("Id").GetValue(filho);
+                    var empresaId = filho.GetType().GetProperty("EmpresaId")?.GetValue(filho);
+                    var unidadeId = filho.GetType().GetProperty("UnidadeId")?.GetValue(filho);
+
+                    var propriedadesMapeadasSemId = GetMappedProperties(filho.GetType())
+                        .Where(x => !x.GetCustomAttributes(typeof(PrimaryKeyAttribute), false).Any())
+                        .Where(x => x.Name != "EmpresaId")
+                        .Where(x => x.Name != "UnidadeId")
+                        .Where(x => x.Name != "Id");
+
+                    var propriedadesParaAtualizar = propriedadesMapeadasSemId
+                        .Select(x => $"{GetColumn(x)} = @{prop.Name}{idLancamento}_{x.Name}");
+
+                    var valoresUpdate = String.Join(",", propriedadesParaAtualizar);
+
+                    sql += $"UPDATE {nomeTabelaFilho} SET {valoresUpdate} WHERE ";
+
+                    sql += $"{foreignKey} = {paiId} ";
+                    sql += $"and {GetColumn(filho.GetType().GetProperty("Id"))} = {idLancamento} ";
+
+                    if (filho.GetType().BaseType == typeof(ModelBaseEmpresa))
+                    {
+                        sql += $"and {GetColumn(filho.GetType().GetProperty("EmpresaId"))} = {empresaId}; ";
+                    }
+                    else if (filho.GetType().BaseType == typeof(ModelBaseUnidade))
+                    {
+                        sql += $"and {GetColumn(filho.GetType().GetProperty("EmpresaId"))} = {empresaId} ";
+                        sql += $"and {GetColumn(filho.GetType().GetProperty("UnidadeId"))} = {unidadeId}; ";
+                    }
+                    else if (filho.GetType().BaseType == typeof(ModelBaseUnidade))
+                    {
+                        sql += "; ";
+                    }
+
+                    sql += GetUpdateInverse(filho, (int)idLancamento);
+                }
+            }
+
+            return sql;
+        }
+
+        protected void UpdateDadosInversos<T>(T entity, NpgsqlCommand command)
+        {
+            foreach (var it in GetInverseProperties(entity.GetType()))
+            {
+                var atributo = (InversePropertyAttribute)it.GetCustomAttributes(typeof(InversePropertyAttribute), false).FirstOrDefault();
+
+                var propertyType = it.PropertyType;
+                var tipoFilho = propertyType.GetGenericArguments().FirstOrDefault();
+                var tabelaAtributo = tipoFilho.GetCustomAttributes(typeof(TableAttribute), false).First();
+
+                var propriedadesMapeadasSemIdFilho = GetMappedProperties(tipoFilho)
+                    .Where(prop => !prop.GetCustomAttributes(typeof(PrimaryKeyAttribute), false).Any())
+                    .Where(prop => prop.Name != "EmpresaId")
+                    .Where(prop => prop.Name != "UnidadeId")
+                    .Where(prop => prop.Name != "Id");
+
+                var filhos = entity.GetType().GetProperty(it.Name).GetValue(entity) as System.Collections.IEnumerable;
+
+                var idLancamento = 0;
+
+                foreach (var filho in filhos)
+                {
+                    idLancamento++;
+
+                    foreach (var prop in propriedadesMapeadasSemIdFilho)
+                    {
+                        var valor = prop.GetValue(filho);
+
+                        if (valor != null)
+                        {
+                            if (valor is bool)
+                                command.Parameters.AddWithValue($"{it.Name}{idLancamento}_{prop.Name}", Convert.ToInt32(valor));
+                            else if (valor is DateTime)
+                                command.Parameters.AddWithValue($"{it.Name}{idLancamento}_{prop.Name}", (DateTime)valor);
+                            else if (valor.GetType().IsEnum)
+                                command.Parameters.AddWithValue(prop.Name, (int)valor);
+                            else
+                                command.Parameters.AddWithValue($"{it.Name}{idLancamento}_{prop.Name}", valor);
+                        }
+                        else
+                        {
+                            command.CommandText = command.CommandText.Replace($"@{it.Name}{idLancamento}_{prop.Name}", "NULL");
+                        }
+
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Delete Métodos
+
+        protected string GetDeleteInverse<TPai>(TPai entity, int? paiId)
+        {
+            string sql = "";
+
+            foreach (var prop in GetInverseProperties(typeof(TPai)))
+            {
+                var atributo = (InversePropertyAttribute)prop.GetCustomAttributes(typeof(InversePropertyAttribute), false).FirstOrDefault();
+                var foreignKey = atributo.Property;
+
+                var propertyType = prop.PropertyType;
+                var tipoFilho = propertyType.GetGenericArguments().FirstOrDefault();
+                var tabelaAtributo = tipoFilho.GetCustomAttributes(typeof(TableAttribute), false).First();
+
+                var nomeTabelaFilho = typeof(TableAttribute).GetProperty("Name").GetValue(tabelaAtributo);
+                var colunasTabelaFilho = GetColumns(tipoFilho);
+
+                var filhos = typeof(TPai).GetProperty(prop.Name).GetValue(entity) as System.Collections.IEnumerable;
+
+
+                foreach (var filho in filhos)
+                {
+                    var idLancamento = filho.GetType().GetProperty("Id").GetValue(filho);
+                    var empresaId = filho.GetType().GetProperty("EmpresaId")?.GetValue(filho);
+                    var unidadeId = filho.GetType().GetProperty("UnidadeId")?.GetValue(filho);
+
+                    sql += $"DELETE FROM {nomeTabelaFilho} WHERE ";
+
+                    sql += $"{foreignKey} = {paiId} ";
+                    sql += $"and {GetColumn(filho.GetType().GetProperty("Id"))} = {idLancamento} ";
+
+                    if (filho.GetType().BaseType == typeof(ModelBaseEmpresa))
+                    {
+                        sql += $"and {GetColumn(filho.GetType().GetProperty("EmpresaId"))} = {empresaId}; ";
+                    }
+                    else if (filho.GetType().BaseType == typeof(ModelBaseUnidade))
+                    {
+                        sql += $"and {GetColumn(filho.GetType().GetProperty("EmpresaId"))} = {empresaId} ";
+                        sql += $"and {GetColumn(filho.GetType().GetProperty("UnidadeId"))} = {unidadeId}; ";
+                    }
+                    else if (filho.GetType().BaseType == typeof(ModelBaseUnidade))
+                    {
+                        sql += "; ";
+                    }
+
+                    sql += GetDeleteInverse(filho, (int)idLancamento);
+                }
+            }
+
+            return sql;
         }
 
         #endregion

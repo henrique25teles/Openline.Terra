@@ -1,5 +1,6 @@
 ﻿using Npgsql;
 using Openline.Terra.Api.Context;
+using Openline.Terra.Api.Context.Schema;
 using Openline.Terra.Api.Models;
 using Openline.Terra.Api.Models.Base;
 using Openline.Terra.Api.Repository.Interface;
@@ -39,7 +40,7 @@ namespace Openline.Terra.Api.Repository.Base
 
                     var sql = $"INSERT INTO {nomeTabela} ({colunas}) VALUES ({proximoId} , {valoresInsert}); ";
 
-                    sql += GetInsertInverse(entity);
+                    sql += GetInsertInverse(entity, proximoId);
 
                     using (var command = new NpgsqlCommand(sql, conexao))
                     {
@@ -67,7 +68,40 @@ namespace Openline.Terra.Api.Repository.Base
 
         public virtual void Delete(int? id, int? empresaId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var nomeTabela = GetTableName(typeof(T));
+                var colunaId = GetIdColumn(typeof(T));
+
+                var empresaColuna = ((ColumnAttribute)typeof(T).GetProperty("EmpresaId").GetCustomAttributes(typeof(ColumnAttribute), false).First()).Name;
+
+                var entity = Get(id, empresaId);
+
+                using (var conexao = new NpgsqlConnection(str))
+                {
+                    var sql = "";
+
+                    sql += GetDeleteInverse(entity, id);
+
+                    sql += $"DELETE FROM {nomeTabela} " +
+                        $"WHERE {empresaColuna} = {empresaId} " +
+                        $"AND {colunaId} = {id}; ";
+
+                    using (var command = new NpgsqlCommand(sql, conexao))
+                    {
+                        command.CommandType = CommandType.Text;
+                        OpenConnection(conexao);
+
+                        command.ExecuteNonQuery();
+
+                        CloseConnection(conexao);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro", ex);
+            }
         }
 
         public virtual T Get(int? id, int? empresaId)
@@ -110,7 +144,55 @@ namespace Openline.Terra.Api.Repository.Base
 
         public virtual T Update(T entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var nomeTabela = GetTableName(typeof(T));
+                var colunas = GetColumns(typeof(T));
+                var colunasLista = GetColumnsList(typeof(T));
+                var colunaId = GetIdColumn(typeof(T));
+
+                var empresaId = entity.EmpresaId;
+                var empresaColuna = ((ColumnAttribute)typeof(T).GetProperty("EmpresaId").GetCustomAttributes(typeof(ColumnAttribute), false).First()).Name;
+                
+                using (var conexao = new NpgsqlConnection(str))
+                {
+                    var propriedadesMapeadasSemId = GetMappedProperties(typeof(T))
+                        .Where(prop => !prop.GetCustomAttributes(typeof(PrimaryKeyAttribute), false).Any())
+                        .Where(prop => prop.Name != "EmpresaId")
+                        .Where(prop => prop.Name != "Id");
+
+                    var propriedadesParaAtualizar = propriedadesMapeadasSemId
+                        .Select(prop => $"{GetColumn(prop)} = @{prop.Name}");
+
+                    var valoresUpdate = String.Join(",", propriedadesParaAtualizar);
+
+                    var sql = $"UPDATE {nomeTabela} SET {valoresUpdate} " +
+                        $"WHERE {empresaColuna} = {empresaId} " +
+                        $"AND {colunaId} = {entity.Id}; ";
+
+                    sql += GetUpdateInverse(entity, entity.Id);
+
+                    using (var command = new NpgsqlCommand(sql, conexao))
+                    {
+                        command.CommandType = CommandType.Text;
+                        OpenConnection(conexao);
+
+                        InsertDadosPrincipais(entity, propriedadesMapeadasSemId, command);
+
+                        UpdateDadosInversos(entity, command);
+
+                        command.ExecuteNonQuery();
+
+                        CloseConnection(conexao);
+                    }
+
+                    return this.Get(entity.Id, empresaId);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro", ex);
+            }
         }
 
         private int GetProximoId(string nomeTabela, string colunaId, int empresaId, string empresaColuna, NpgsqlConnection conexao)
